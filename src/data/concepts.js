@@ -66,4 +66,47 @@ DELETE FROM tasks WHERE id = 3;`,
 );`,
         related: ['CREATE_TABLE', 'INSERT_INTO'],
     },
+    {
+        id: 'indexing',
+        name: 'Indexing (索引)',
+        emoji: '⚡',
+        phase: 3,
+        eli5: '像是書本的「目錄」。沒有目錄，找內容要一頁頁翻 (Full Scan)；有目錄，直接翻到那一頁 (Index Seek)。',
+        analogy: '字典的部首索引。如果你要找「機」這個字，你會從「木」部首開始找（索引），而不是從第一頁「ㄅ」開始翻（全表掃描）。',
+        whyMatters: [
+            '效能優化的第一步：讓查詢從 10秒 變成 0.1秒。',
+            '代價：雖然查詢變快，但寫入 (INSERT/UPDATE) 會變慢，因為要同時更新目錄。',
+            '主鍵 (Primary Key) 預設就會建立索引。'
+        ],
+        advanced: {
+            title: '進階索引策略',
+            content: `<ul>
+        <li><strong>B-Tree Index:</strong> 最常用的通用索引 (適合 =, >, <, BETWEEN)。</li>
+        <li><strong>Hash Index:</strong> 僅適合精確匹配 (=)，不支援範圍查詢。</li>
+        <li><strong>Composite Index (複合索引):</strong> 針對多個欄位建索引 (e.g., WHERE a = 1 AND b = 2)。注意 <strong>最左前綴原則 (Leftmost Prefix Rule)</strong>。</li>
+      </ul>`
+        }
+    },
+    {
+        id: 'transactions',
+        name: 'Transactions (交易)',
+        emoji: '🤝',
+        phase: 3,
+        eli5: '「要嘛全做，要嘛全不做」。保證一連串操作是不可分割的整體。',
+        analogy: '銀行轉帳。A 扣款 100 元，B 加值 100 元。這兩個動作必須同時成功。如果 A 扣款成功但 B 加值失敗，系統必須把錢退回給 A (Rollback)。',
+        whyMatters: [
+            '確保資料的一致性 (Consistency)。',
+            '避免髒讀 (Dirty Read) 與資料錯亂。'
+        ],
+        codeExample: `BEGIN; -- 開始交易
+UPDATE accounts SET balance = balance - 100 WHERE name = 'Alice';
+UPDATE accounts SET balance = balance + 100 WHERE name = 'Bob';
+COMMIT; -- 確認提交 (若有錯誤則 ROLLBACK)`,
+        typeTable: [
+            { type: 'ACID', desc: 'Atomic (原子性)', example: '不可分割' },
+            { type: 'ACID', desc: 'Consistency (一致性)', example: '符合約束' },
+            { type: 'ACID', desc: 'Isolation (隔離性)', example: '互不干擾' },
+            { type: 'ACID', desc: 'Durability (持久性)', example: '永不遺失' }
+        ]
+    }
 ];

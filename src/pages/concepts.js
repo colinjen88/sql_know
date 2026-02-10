@@ -4,17 +4,18 @@
 
 import { conceptsData } from '../data/concepts.js';
 import { renderCodeBlock } from '../components/codeBlock.js';
+import { renderExpandableSection } from '../components/expandableSection.js';
 import { navigate } from '../router.js';
 
 export function renderConcepts(params = {}) {
-    const main = document.getElementById('main-content');
+  const main = document.getElementById('main-content');
 
-    if (params.id) {
-        renderConceptDetail(params.id);
-        return;
-    }
+  if (params.id) {
+    renderConceptDetail(params.id);
+    return;
+  }
 
-    main.innerHTML = `
+  main.innerHTML = `
     <div class="fade-slide-in">
       <h2 class="page-title">🧠 核心觀念</h2>
       <p class="page-desc">理解「為什麼」要這樣做，面試與設計資料庫時使用。</p>
@@ -38,21 +39,21 @@ export function renderConcepts(params = {}) {
     </div>
   `;
 
-    main.querySelectorAll('.card-clickable[data-id]').forEach(card => {
-        card.addEventListener('click', () => navigate('concepts', { id: card.dataset.id }));
-    });
+  main.querySelectorAll('.card-clickable[data-id]').forEach(card => {
+    card.addEventListener('click', () => navigate('concepts', { id: card.dataset.id }));
+  });
 }
 
 function renderConceptDetail(id) {
-    const main = document.getElementById('main-content');
-    const item = conceptsData.find(c => c.id === id);
+  const main = document.getElementById('main-content');
+  const item = conceptsData.find(c => c.id === id);
 
-    if (!item) {
-        main.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">❓</div><div class="empty-state-text">找不到此觀念</div></div>';
-        return;
-    }
+  if (!item) {
+    main.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">❓</div><div class="empty-state-text">找不到此觀念</div></div>';
+    return;
+  }
 
-    main.innerHTML = `
+  main.innerHTML = `
     <div class="detail-view">
       <div class="detail-header">
         <button class="detail-back" id="back-btn">
@@ -108,6 +109,11 @@ function renderConceptDetail(id) {
         ${renderCodeBlock(item.codeExample)}
       </div>
 
+       ${item.advanced ? renderExpandableSection(
+    `⚡ 進階：${item.advanced.title}`,
+    item.advanced.content
+  ) : ''}
+
       ${item.related.length > 0 ? `
         <div class="detail-section">
           <h3 class="detail-section-title">🔗 相關連結</h3>
@@ -119,5 +125,5 @@ function renderConceptDetail(id) {
     </div>
   `;
 
-    document.getElementById('back-btn').addEventListener('click', () => navigate('concepts'));
+  document.getElementById('back-btn').addEventListener('click', () => navigate('concepts'));
 }

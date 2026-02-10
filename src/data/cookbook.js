@@ -69,4 +69,45 @@ COMMIT;
         performanceNote: null,
         related: ['UPDATE', 'DELETE', 'Primary_Key'],
     },
+    {
+        id: 'avoid_n_plus_1',
+        name: '避免 N+1 Query 問題',
+        emoji: '🐢',
+        difficulty: 'Intermediate',
+        context: '當你在迴圈中執行 SQL 查詢時，效能會呈現指數級下降。',
+        solution: `-- BAD: 在迴圈裡跑 100 次查詢
+-- javascript: users.forEach(u => query('SELECT * FROM posts WHERE user_id = ?', u.id))
+
+-- GOOD: 用 IN 一次查完
+SELECT * FROM posts WHERE user_id IN (1, 2, 3, ...);`,
+        explanation: [
+            '每一次 SQL 查詢都有網路開銷 (Network Latency)。',
+            'N+1 代表：1 次查詢找出 N 個人，然後跑 N 次查詢找他們的文章。',
+            '盡量用 JOIN 或 WHERE IN 將多次查詢合併為一次。'
+        ]
+    },
+    {
+        id: 'index_usage',
+        name: '確認索引是否生效',
+        emoji: '🔍',
+        difficulty: 'Advanced',
+        context: '明明建了索引，查詢還是很慢？可能是查詢寫法讓索引失效了。',
+        solution: `-- 1. 使用 EXPLAIN ANALYZE 查看執行計畫
+EXPLAIN ANALYZE SELECT * FROM users WHERE age = 25;
+
+-- 結果若出現 "Seq Scan" (循序掃描) 代表沒用到索引。
+-- 若出現 "Index Scan" 或 "Bitmap Heap Scan" 代表用到索引。`,
+        advancedSolution: `-- 常見索引失效案例：
+
+-- BAD: 在索引欄位上做運算
+SELECT * FROM users WHERE YEAR(created_at) = 2023;
+
+-- GOOD: 轉換條件，保持欄位乾淨
+SELECT * FROM users WHERE created_at >= '2023-01-01' AND created_at < '2024-01-01';`,
+        explanation: [
+            '對欄位使用函數 (e.g., YEAR(), LOWER()) 會導致資料庫無法直接比對索引樹。',
+            '使用 LIKE "%keyword" (前綴模糊) 也會讓 B-Tree 索引失效。',
+            'OR 條件有時也會導致索引失效，可考慮用 UNION 改寫。'
+        ]
+    }
 ];

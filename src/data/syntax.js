@@ -160,4 +160,73 @@ WHERE id = 5;`,
         warning: '⚠️ 千萬記得加 WHERE！不加會刪除整張表格所有資料，無法復原。',
         related: ['SELECT', 'UPDATE', 'CREATE_TABLE'],
     },
+    {
+        id: 'window_functions',
+        name: 'Window Functions (視窗函數)',
+        emoji: '🪟',
+        category: 'Analysis',
+        phase: 3,
+        summary: '不需 Group By 也能做分組統計，排名與累計的神器。',
+        syntax: `SELECT column,
+       func() OVER (PARTITION BY ... ORDER BY ...)
+FROM table;`,
+        params: [
+            { name: 'OVER()', desc: '定義視窗範圍的核心關鍵字' },
+            { name: 'PARTITION BY', desc: '分組依據 (類似 Group By 但不合併列)' },
+            { name: 'ORDER BY', desc: '排序依據 (影響排名與累計順序)' },
+        ],
+        example: `-- 找出每個部門薪水最高的員工 (排名)
+SELECT name, dept, salary,
+       RANK() OVER (PARTITION BY dept ORDER BY salary DESC) as rank
+FROM employees;`,
+        result: '回傳所有員工資料，並附帶該員工在部門內的薪資排名 (rank)。',
+        related: ['GROUP_BY'],
+        advanced: {
+            title: '常用函數比較',
+            content: `<ul>
+        <li><code>ROW_NUMBER()</code>: 強制流水號 (1, 2, 3, 4)，即使同分也不重複。</li>
+        <li><code>RANK()</code>: 跳號排名 (1, 2, 2, 4)，同分時名次相同。</li>
+        <li><code>DENSE_RANK()</code>: 不跳號排名 (1, 2, 2, 3)，同分時名次相同。</li>
+        <li><code>LAG() / LEAD()</code>: 取得 前一列 / 後一列 的值 (做 YoY 成長率必備)。</li>
+      </ul>`
+        }
+    },
+    {
+        id: 'cte',
+        name: 'CTE (通用資料表運算式)',
+        emoji: '🔗',
+        category: 'Query',
+        phase: 3,
+        summary: '把複雜查詢變成「暫存表」，讓 SQL 像寫程式一樣有變數。',
+        syntax: `WITH cte_name AS (
+    SELECT ...
+)
+SELECT * FROM cte_name;`,
+        params: [
+            { name: 'WITH', desc: '宣告 CTE 的起始關鍵字' },
+            { name: 'cte_name', desc: '自訂的暫存表名稱' },
+        ],
+        example: `WITH HighSalary AS (
+    SELECT * FROM employees WHERE salary > 100000
+)
+SELECT dept, COUNT(*)
+FROM HighSalary
+GROUP BY dept;`,
+        result: '先篩選出高薪員工 (HighSalary)，再對這個結果集進行部門統計。',
+        related: ['SELECT', 'Subquery'],
+        advanced: {
+            title: 'Recursive CTE (遞迴)',
+            content: `<p>CTE 最強大的功能是<strong>遞迴</strong>，用來處理樹狀結構 (如：組織圖、留言串)。</p>
+<pre><code class="language-sql">WITH RECURSIVE subordinates AS (
+    -- Anchor member (起點)
+    SELECT id, name, manager_id FROM employees WHERE id = 1
+    UNION ALL
+    -- Recursive member (遞迴)
+    SELECT e.id, e.name, e.manager_id
+    FROM employees e
+    INNER JOIN subordinates s ON e.manager_id = s.id
+)
+SELECT * FROM subordinates;</code></pre>`
+        }
+    }
 ];

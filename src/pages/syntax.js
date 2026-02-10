@@ -4,27 +4,28 @@
 
 import { syntaxData } from '../data/syntax.js';
 import { renderCodeBlock } from '../components/codeBlock.js';
+import { renderExpandableSection } from '../components/expandableSection.js';
 import { navigate } from '../router.js';
 
 let currentFilter = '';
 
 export function renderSyntax(params = {}) {
-    const main = document.getElementById('main-content');
+  const main = document.getElementById('main-content');
 
-    if (params.id) {
-        renderSyntaxDetail(params.id);
-        return;
-    }
+  if (params.id) {
+    renderSyntaxDetail(params.id);
+    return;
+  }
 
-    const filtered = currentFilter
-        ? syntaxData.filter(s =>
-            s.name.toLowerCase().includes(currentFilter.toLowerCase()) ||
-            s.summary.includes(currentFilter) ||
-            s.category.toLowerCase().includes(currentFilter.toLowerCase())
-        )
-        : syntaxData;
+  const filtered = currentFilter
+    ? syntaxData.filter(s =>
+      s.name.toLowerCase().includes(currentFilter.toLowerCase()) ||
+      s.summary.includes(currentFilter) ||
+      s.category.toLowerCase().includes(currentFilter.toLowerCase())
+    )
+    : syntaxData;
 
-    main.innerHTML = `
+  main.innerHTML = `
     <div class="fade-slide-in">
       <h2 class="page-title">📖 語法字典</h2>
       <p class="page-desc">當你忘記指令怎麼寫時，來這裡快速查閱。點擊卡片查看完整語法說明。</p>
@@ -59,37 +60,37 @@ export function renderSyntax(params = {}) {
     </div>
   `;
 
-    // Event listeners
-    main.querySelectorAll('.card-clickable[data-id]').forEach(card => {
-        card.addEventListener('click', () => navigate('syntax', { id: card.dataset.id }));
-    });
+  // Event listeners
+  main.querySelectorAll('.card-clickable[data-id]').forEach(card => {
+    card.addEventListener('click', () => navigate('syntax', { id: card.dataset.id }));
+  });
 
-    const searchInput = document.getElementById('syntax-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            currentFilter = e.target.value;
-            renderSyntax(params);
-        });
-    }
-
-    main.querySelectorAll('.filter-tag[data-filter]').forEach(tag => {
-        tag.addEventListener('click', () => {
-            currentFilter = tag.dataset.filter;
-            renderSyntax(params);
-        });
+  const searchInput = document.getElementById('syntax-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      currentFilter = e.target.value;
+      renderSyntax(params);
     });
+  }
+
+  main.querySelectorAll('.filter-tag[data-filter]').forEach(tag => {
+    tag.addEventListener('click', () => {
+      currentFilter = tag.dataset.filter;
+      renderSyntax(params);
+    });
+  });
 }
 
 function renderSyntaxDetail(id) {
-    const main = document.getElementById('main-content');
-    const item = syntaxData.find(s => s.id === id);
+  const main = document.getElementById('main-content');
+  const item = syntaxData.find(s => s.id === id);
 
-    if (!item) {
-        main.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">❓</div><div class="empty-state-text">找不到此語法</div></div>';
-        return;
-    }
+  if (!item) {
+    main.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">❓</div><div class="empty-state-text">找不到此語法</div></div>';
+    return;
+  }
 
-    main.innerHTML = `
+  main.innerHTML = `
     <div class="detail-view">
       <div class="detail-header">
         <button class="detail-back" id="back-btn">
@@ -133,6 +134,11 @@ function renderSyntaxDetail(id) {
         <div class="callout">${item.result}</div>
       </div>
 
+      ${item.advanced ? renderExpandableSection(
+    `🚀 進階：${item.advanced.title}`,
+    item.advanced.content
+  ) : ''}
+
       ${item.related.length > 0 ? `
         <div class="detail-section">
           <h3 class="detail-section-title">🔗 相關連結</h3>
@@ -144,14 +150,14 @@ function renderSyntaxDetail(id) {
     </div>
   `;
 
-    document.getElementById('back-btn').addEventListener('click', () => navigate('syntax'));
+  document.getElementById('back-btn').addEventListener('click', () => navigate('syntax'));
 
-    main.querySelectorAll('[data-related]').forEach(tag => {
-        tag.addEventListener('click', () => {
-            const relId = tag.dataset.related.toLowerCase().replace(/_/g, '-');
-            const found = syntaxData.find(s => s.id === relId);
-            if (found) navigate('syntax', { id: found.id });
-            else navigate('concepts');
-        });
+  main.querySelectorAll('[data-related]').forEach(tag => {
+    tag.addEventListener('click', () => {
+      const relId = tag.dataset.related.toLowerCase().replace(/_/g, '-');
+      const found = syntaxData.find(s => s.id === relId);
+      if (found) navigate('syntax', { id: found.id });
+      else navigate('concepts');
     });
+  });
 }

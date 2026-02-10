@@ -3,6 +3,7 @@
 // =========================================
 
 import './style.css';
+import './components/expandableSection.css';
 import { initRouter, registerRoute, setRouteChangeCallback } from './router.js';
 import { renderSidebar } from './components/sidebar.js';
 import { renderHeader } from './components/header.js';
@@ -44,6 +45,20 @@ window.addEventListener('global-search', (e) => {
         // (could be expanded to search across all data)
         const currentHash = window.location.hash.slice(1).split('?')[0];
         // Keep user on same page, let page handle search
+    }
+});
+
+// Global event delegation for interactive elements
+document.addEventListener('click', (e) => {
+    const expandBtn = e.target.closest('[data-toggle-section]');
+    if (expandBtn) {
+        const targetId = expandBtn.dataset.toggleSection;
+        const section = document.getElementById(targetId);
+        if (section) {
+            section.classList.toggle('open');
+            const isExpanded = section.classList.contains('open');
+            expandBtn.setAttribute('aria-expanded', isExpanded);
+        }
     }
 });
 
