@@ -13,6 +13,8 @@
 | [`02_Core_Concepts/`](02_Core_Concepts/) | 🧠 核心觀念 | 面試準備、理解原理 |
 | [`03_Cookbook/`](03_Cookbook/) | 🍳 實戰食譜 | 遇到具體需求時複製貼上 |
 | [`04_Project_Logs/`](04_Project_Logs/) | 📅 專案日誌 | 記錄每日學習與除錯過程 |
+| `src/data/techStack.js` | 🔧 技術選型 | 資料庫與 GUI 工具比較 |
+| `src/data/styleGuide.js` | 📏 開發規範 | 團隊命名與開發規則 |
 
 ---
 
@@ -63,6 +65,7 @@
 - **資料庫引擎：** PostgreSQL
 - **管理工具：** DBeaver / VS Code + SQLTools
 - **筆記系統：** Markdown + Git
+- **Web App:** Vite + Vanilla JS (Port: `7730`)
 
 ---
 
