@@ -12,6 +12,11 @@ let currentFilter = '';
 export function renderSyntax(params = {}) {
   const main = document.getElementById('main-content');
 
+  // Support Global Search Param
+  if (params.q) {
+    currentFilter = params.q;
+  }
+
   if (params.id) {
     renderSyntaxDetail(params.id);
     return;
@@ -70,6 +75,16 @@ export function renderSyntax(params = {}) {
     searchInput.addEventListener('input', (e) => {
       currentFilter = e.target.value;
       renderSyntax(params);
+
+      // Fix Focus Loss Bug
+      setTimeout(() => {
+        const input = document.getElementById('syntax-search');
+        if (input) {
+          const len = input.value.length;
+          input.focus();
+          input.setSelectionRange(len, len);
+        }
+      }, 0);
     });
   }
 

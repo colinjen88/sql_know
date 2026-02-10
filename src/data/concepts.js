@@ -108,5 +108,62 @@ COMMIT; -- 確認提交 (若有錯誤則 ROLLBACK)`,
             { type: 'ACID', desc: 'Isolation (隔離性)', example: '互不干擾' },
             { type: 'ACID', desc: 'Durability (持久性)', example: '永不遺失' }
         ]
+    },
+    {
+        id: 'foreign-key',
+        name: 'Foreign Key (外鍵)',
+        emoji: '🔗',
+        phase: 2,
+        eli5: '外鍵是用來「指向別人家主鍵」的欄位，確保資料的關聯是正確的，不能隨便指到不存在的人。',
+        analogy: '像是員工證上的「部門代號」。如果部門代號是 "D01"，那麼公司一定要有一個叫 "D01" 的部門，不能憑空捏造。',
+        whyMatters: [
+            'Referential Integrity (參考完整性)：防止孤兒資料 (Orphan Record)。',
+            '如果刪除了部門，系統會警告你「還有員工屬於這個部門」，避免誤刪。',
+            '是 JOIN 的基礎。'
+        ],
+        visual: `
+users 表 (主鍵: id)   tasks 表 (外鍵: user_id)
+┌────┬───────┐       ┌────┬────────┬─────────┐
+│ id │ name  │ <──── │ id │ title  │ user_id │
+├────┼───────┤       ├────┼────────┼─────────┤
+│  1 │ Alice │       │ 10 │ 買牛奶 │    1    │
+│  2 │ Bob   │       │ 11 │ 寫程式 │    1    │
+└────┴───────┘       │ 12 │ 運動   │    2    │
+                     └────┴────────┴─────────┘
+user_id 必須存在於 users 表的 id 中！`,
+        codeExample: `CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    user_id INTEGER REFERENCES users(id) -- 設定外鍵
+);`,
+        related: ['Primary_Key', 'CREATE_TABLE']
+    },
+    {
+        id: 'joins',
+        name: 'Joins (連結)',
+        emoji: '🤝',
+        phase: 2,
+        eli5: '把兩張分開的表格，依照共同的欄位 (通常是 ID) 拼成一張大表格。',
+        analogy: '像是把「學生名單」和「成績單」擺在一起對照。名單有名字沒成績，成績單有分數沒名字，合起來才知道「王小明考 100 分」。',
+        whyMatters: [
+            '正規化後的資料散落在不同表格，必須靠 JOIN 才能還原完整資訊。',
+            'Inner Join (交集)：只留兩邊都有的。',
+            'Left Join (左保留)：左邊全留，右邊有就補，沒有就填 NULL。'
+        ],
+        visual: `
+Inner Join:        Left Join:
+  (A ∩ B)            (A 全部 + B 的交集)
+  只取有對應的        A 的孤兒也會留下
+`,
+        typeTable: [
+            { type: 'INNER JOIN', desc: '兩邊都有才留', example: '有分發到部門的員工' },
+            { type: 'LEFT JOIN', desc: '左邊全留', example: '所有員工 (含無部門)' },
+            { type: 'RIGHT JOIN', desc: '右邊全留', example: '所有部門 (含無員工)' },
+            { type: 'FULL JOIN', desc: '兩邊全留', example: '所有員工與部門' }
+        ],
+        codeExample: `SELECT users.name, tasks.title
+FROM users
+INNER JOIN tasks ON users.id = tasks.user_id;`,
+        related: ['Primary_Key', 'Foreign_Key', 'SELECT']
     }
 ];

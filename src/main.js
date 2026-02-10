@@ -35,6 +35,11 @@ setRouteChangeCallback((path) => {
     // Scroll main to top on route change
     const mainContent = document.getElementById('main-content');
     if (mainContent) mainContent.scrollTop = 0;
+
+    // Trigger Syntax Highlighting
+    if (window.Prism) {
+        window.Prism.highlightAll();
+    }
 });
 
 // Global search handler

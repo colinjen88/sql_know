@@ -5,30 +5,36 @@
 import { makeSvg } from './sidebar.js';
 
 const PAGE_TITLES = {
-  dashboard: { title: '首頁總覽', breadcrumb: 'Dashboard' },
-  syntax: { title: '📖 語法字典', breadcrumb: 'Syntax Dictionary' },
-  concepts: { title: '🧠 核心觀念', breadcrumb: 'Core Concepts' },
-  cookbook: { title: '🍳 實戰食譜', breadcrumb: 'Cookbook' },
-  tech: { title: '🔧 技術選型', breadcrumb: 'Tech Stack' },
-  guide: { title: '📏 開發規範', breadcrumb: 'Style Guide' },
-  roadmap: { title: '🗺️ 學習路徑', breadcrumb: 'Roadmap' },
-  journal: { title: '📅 學習日誌', breadcrumb: 'Journal' },
+  dashboard: { title: 'Dashboard', breadcrumb: 'Overview' },
+  syntax: { title: 'Syntax Dictionary', breadcrumb: 'SQL Syntax' },
+  concepts: { title: 'Core Concepts', breadcrumb: 'Foundations' },
+  cookbook: { title: 'Cookbook', breadcrumb: 'Practical Recipes' },
+  tech: { title: 'Tech Stack', breadcrumb: 'Technologies' },
+  guide: { title: 'Style Guide', breadcrumb: 'Coding Standards' },
+  roadmap: { title: 'Roadmap', breadcrumb: 'Learning Path' },
+  journal: { title: 'Journal', breadcrumb: 'Learning Log' },
 };
 
 export function renderHeader(route = 'dashboard') {
   const header = document.getElementById('header');
   const page = PAGE_TITLES[route] || PAGE_TITLES.dashboard;
 
+  // Uses inline styles for header title to keep CSS clean and specific to header context
+  // Uses .search-bar .search-input .search-icon classes defined in style.css
+
   header.innerHTML = `
-    <div class="header-left">
-      <h1 class="header-title">${page.title}</h1>
-      <span class="header-breadcrumb">${page.breadcrumb}</span>
-    </div>
-    <div class="header-right">
-      <div class="header-search" id="global-search">
-        ${makeSvg('search', 'header-search-icon')}
-        <input type="text" placeholder="搜尋語法、觀念..." id="search-input" />
+    <div>
+      <div style="font-weight: 600; font-size: 16px; color: var(--text-primary); margin-bottom: 2px;">${page.title}</div>
+      <div class="breadcrumb" style="font-size: 13px;">
+        <span>SQL Mastery</span>
+        <span style="color: var(--text-muted)">/</span>
+        <span class="current">${page.breadcrumb}</span>
       </div>
+    </div>
+    
+    <div class="search-bar" id="global-search">
+      ${makeSvg('search', 'search-icon')}
+      <input type="text" class="search-input" placeholder="Search (Cmd+K)..." id="search-input" />
     </div>
   `;
 

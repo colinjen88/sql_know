@@ -6,9 +6,9 @@ import { techStackData } from '../data/techStack.js';
 import { navigate } from '../router.js';
 
 export function renderTech(params = {}) {
-    const main = document.getElementById('main-content');
+  const main = document.getElementById('main-content');
 
-    main.innerHTML = `
+  main.innerHTML = `
     <div class="fade-slide-in">
       <h2 class="page-title">🔧 技術選型</h2>
       <p class="page-desc">工欲善其事，必先利其器。這裡記錄了工具選擇的理由與比較。</p>
@@ -19,7 +19,7 @@ export function renderTech(params = {}) {
 }
 
 function renderTechSection(section) {
-    return `
+  return `
     <div class="card stagger-item" style="margin-bottom: 32px;">
       <div class="card-header">
         <div class="card-icon cyan">${section.emoji}</div>
@@ -37,17 +37,17 @@ function renderTechSection(section) {
 }
 
 function renderTechItem(item) {
-    const isRecommended = item.verdict.includes('首選') || item.verdict.includes('最全');
+  const isRecommended = item.verdict.includes('首選') || item.verdict.includes('最全');
 
-    return `
+  return `
     <div class="tech-item" style="
-      background: rgba(255,255,255,0.03); 
+      background: rgba(0,0,0,0.02); 
       border-radius: var(--radius-md); 
       padding: 16px; 
       border: 1px solid ${isRecommended ? 'var(--color-primary)' : 'var(--border-color)'};
       position: relative;
     ">
-      ${isRecommended ? '<div style="position: absolute; top: -10px; right: 10px; background: var(--color-primary); color: #000; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px;">RECOMMENDED</div>' : ''}
+      ${isRecommended ? '<div style="position: absolute; top: -10px; right: 10px; background: var(--color-primary); color: #ffe359; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px;">RECOMMENDED</div>' : ''}
       
       <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
         <span style="font-weight: 700; font-size: 16px; color: var(--text-primary);">${item.name}</span>

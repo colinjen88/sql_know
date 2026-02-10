@@ -45,20 +45,19 @@ export function renderSidebar() {
   };
 
   sidebar.innerHTML = `
-    <div class="sidebar-brand">
-      <div class="sidebar-brand-icon">📘</div>
-      <div class="sidebar-brand-text">
-        <div class="sidebar-brand-title">SQL Mastery</div>
-        <div class="sidebar-brand-subtitle">Knowledge Base</div>
-      </div>
+    <div class="logo-area">
+      <div class="logo-icon">${makeSvg('home', '')}</div>
+      <div class="logo-text">SQL Mastery</div>
     </div>
+    
     <nav class="sidebar-nav">
       ${renderSection('', sections.main, activePath)}
       ${renderSection('學習資源', sections.learn, activePath)}
       ${renderSection('進度追蹤', sections.track, activePath)}
     </nav>
-    <div class="sidebar-progress">
-      <div class="sidebar-progress-label">
+    
+    <div class="sidebar-progress" style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border-color);">
+      <div class="sidebar-progress-label" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px; color:var(--text-muted);">
         <span>整體進度</span>
         <span>${progress}%</span>
       </div>
@@ -68,7 +67,8 @@ export function renderSidebar() {
     </div>
   `;
 
-  sidebar.querySelectorAll('.sidebar-link').forEach(link => {
+  // Attach event listeners
+  sidebar.querySelectorAll('.nav-item').forEach(link => {
     link.addEventListener('click', () => {
       navigate(link.dataset.route);
     });
@@ -76,18 +76,20 @@ export function renderSidebar() {
 }
 
 function renderSection(label, items, activePath) {
-  const labelHtml = label ? `<div class="sidebar-section-label">${label}</div>` : '';
+  const labelHtml = label ? `<div class="nav-section-title">${label}</div>` : '';
   const linksHtml = items.map(item => {
     const isActive = activePath === item.id ? 'active' : '';
-    const badgeHtml = item.badge ? `<span class="sidebar-link-badge">${item.badge}</span>` : '';
+    const badgeClass = item.badge === 'New' ? 'nav-badge badge-new' : 'nav-badge';
+    const badgeHtml = item.badge ? `<span class="${badgeClass}">${item.badge}</span>` : '';
     return `
-      <div class="sidebar-link ${isActive}" data-route="${item.id}">
-        ${makeSvg(item.icon, 'sidebar-link-icon')}
+      <div class="nav-item ${isActive}" data-route="${item.id}">
+        ${makeSvg(item.icon, 'nav-icon')}
         <span>${item.label}</span>
         ${badgeHtml}
       </div>
     `;
   }).join('');
+
   return labelHtml + linksHtml;
 }
 

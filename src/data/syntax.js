@@ -228,5 +228,100 @@ GROUP BY dept;`,
 )
 SELECT * FROM subordinates;</code></pre>`
         }
+    },
+    {
+        id: 'primary-key',
+        name: 'PRIMARY KEY',
+        emoji: '🔑',
+        phase: 2,
+        category: 'Constraint',
+        summary: '用來唯一識別資料列的約束條件，強迫欄位值不得重複且不為 NULL。',
+        syntax: `CREATE TABLE table_name (
+    id SERIAL PRIMARY KEY, -- 簡寫
+    ...
+);
+-- 或是
+CREATE TABLE table_name (
+    id INT,
+    CONSTRAINT pk_name PRIMARY KEY (id)
+);`,
+        params: [
+            { name: 'SERIAL', desc: 'PostgreSQL 專用的自動遞增整數型別' },
+            { name: 'PRIMARY KEY', desc: '宣告此欄位為主鍵' },
+        ],
+        example: `CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username TEXT NOT NULL
+);`,
+        result: '建立表格時設定主鍵約束。',
+        related: ['CREATE_TABLE', 'Foreign_Key']
+    },
+    {
+        id: 'foreign-key',
+        name: 'FOREIGN KEY',
+        emoji: '🔗',
+        phase: 2,
+        category: 'Constraint',
+        summary: '建立與另一張表的關聯，確保資料完整性 (Referential Integrity)。',
+        syntax: `CREATE TABLE table_name (
+    ...
+    other_id INT REFERENCES other_table(id)
+);
+-- 或是
+CREATE TABLE table_name (
+    ...
+    CONSTRAINT fk_name FOREIGN KEY (other_id) REFERENCES other_table(id)
+);`,
+        params: [
+            { name: 'REFERENCES', desc: '指向哪張表的哪個欄位' },
+            { name: 'ON DELETE CASCADE', desc: '(選用) 當父表刪除時，自動刪除子表資料' },
+        ],
+        example: `CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE
+);`,
+        result: '建立表格時設定外鍵約束。',
+        related: ['CREATE_TABLE', 'Primary_Key']
+    },
+    {
+        id: 'inner-join',
+        name: 'INNER JOIN',
+        emoji: '🤝',
+        phase: 2,
+        category: 'Query',
+        summary: '連結兩張表，只保留「兩邊都有對應」的資料列 (交集)。',
+        syntax: `SELECT ...
+FROM table_A
+INNER JOIN table_B ON table_A.key = table_B.key;`,
+        params: [
+            { name: 'INNER JOIN', desc: '連結關鍵字' },
+            { name: 'ON', desc: '連結條件 (通常是 id = foreign_key)' },
+        ],
+        example: `-- 找出所有有任務的使用者及其任務
+SELECT users.username, tasks.title
+FROM users
+INNER JOIN tasks ON users.id = tasks.user_id;`,
+        result: '回傳符合連結條件的資料列。孤兒資料 (沒對應的) 會被過濾掉。',
+        related: ['SELECT', 'Left_Join', 'Foreign_Key']
+    },
+    {
+        id: 'left-join',
+        name: 'LEFT JOIN',
+        emoji: '👈',
+        phase: 2,
+        category: 'Query',
+        summary: '連結兩張表，保留左邊表格的所有資料，右邊沒對應的填 NULL (左保留)。',
+        syntax: `SELECT ...
+FROM table_A
+LEFT JOIN table_B ON table_A.key = table_B.key;`,
+        params: [
+            { name: 'LEFT JOIN', desc: '以左表為主，右表為輔' },
+        ],
+        example: `-- 找出所有使用者，即使他沒有任務 (任務欄位會是 NULL)
+SELECT users.username, tasks.title
+FROM users
+LEFT JOIN tasks ON users.id = tasks.user_id;`,
+        result: '回傳左表所有資料。若右表無對應資料，則該欄位顯示 NULL。',
+        related: ['SELECT', 'Inner_Join']
     }
 ];
