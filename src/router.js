@@ -37,15 +37,15 @@ function parseHash() {
     return { path, params };
 }
 
-function handleRoute() {
+async function handleRoute() {
     const { path, params } = parseHash();
     currentRoute = { path, params };
 
     const handler = routes[path];
     if (handler) {
-        handler(params);
+        await handler(params);
     } else if (routes['dashboard']) {
-        routes['dashboard']({});
+        await routes['dashboard']({});
     }
 
     if (onRouteChange) {
@@ -53,7 +53,14 @@ function handleRoute() {
     }
 }
 
+let isRouterInitialized = false;
+
 export function initRouter() {
+    if (isRouterInitialized) {
+        handleRoute();
+        return;
+    }
     window.addEventListener('hashchange', handleRoute);
     handleRoute();
+    isRouterInitialized = true;
 }

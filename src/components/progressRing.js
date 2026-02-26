@@ -2,13 +2,15 @@
 // Progress Ring + Progress State
 // =========================================
 
-import { roadmapData } from '../data/roadmap.js';
+import { getData } from '../data/dataLoader.js';
+import { store } from '../store.js';
 
-const STORAGE_KEY = 'sql-mastery-progress';
+const getStorageKey = () => `knowsys-progress-${store.getCurrentKB().id}`;
+const getJournalKey = () => `knowsys-journal-${store.getCurrentKB().id}`;
 
 export function getProgress() {
     try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        return JSON.parse(localStorage.getItem(getStorageKey()) || '{}');
     } catch {
         return {};
     }
@@ -17,7 +19,7 @@ export function getProgress() {
 export function setSkillComplete(skillId, completed) {
     const progress = getProgress();
     progress[skillId] = completed;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    localStorage.setItem(getStorageKey(), JSON.stringify(progress));
 }
 
 export function isSkillComplete(skillId) {
@@ -25,24 +27,31 @@ export function isSkillComplete(skillId) {
 }
 
 export function getOverallProgress() {
+    const roadmapData = getData('roadmap');
     const progress = getProgress();
     let total = 0;
     let done = 0;
     roadmapData.forEach(phase => {
         phase.skills.forEach(skill => {
             total++;
-            if (progress[skill.id]) done++;
+            // Support both string IDs and objects if needed
+            const id = typeof skill === 'string' ? skill : skill.id;
+            if (progress[id]) done++;
         });
     });
     return total === 0 ? 0 : Math.round((done / total) * 100);
 }
 
 export function getPhaseProgress(phaseId) {
+    const roadmapData = getData('roadmap');
     const progress = getProgress();
-    const phase = roadmapData.find(p => p.id === phaseId);
+    const phase = roadmapData.find(p => p.id === phaseId || p.phase === phaseId);
     if (!phase) return 0;
     let total = phase.skills.length;
-    let done = phase.skills.filter(s => progress[s.id]).length;
+    let done = phase.skills.filter(s => {
+        const id = typeof s === 'string' ? s : s.id;
+        return progress[id];
+    }).length;
     return total === 0 ? 0 : Math.round((done / total) * 100);
 }
 
@@ -75,11 +84,9 @@ export function renderProgressRing(percent, size = 120) {
 }
 
 // Journal data
-const JOURNAL_KEY = 'sql-mastery-journal';
-
 export function getJournalEntries() {
     try {
-        return JSON.parse(localStorage.getItem(JOURNAL_KEY) || '[]');
+        return JSON.parse(localStorage.getItem(getJournalKey()) || '[]');
     } catch {
         return [];
     }
@@ -88,10 +95,10 @@ export function getJournalEntries() {
 export function addJournalEntry(entry) {
     const entries = getJournalEntries();
     entries.unshift({ ...entry, id: Date.now(), date: new Date().toISOString() });
-    localStorage.setItem(JOURNAL_KEY, JSON.stringify(entries));
+    localStorage.setItem(getJournalKey(), JSON.stringify(entries));
 }
 
 export function deleteJournalEntry(id) {
     const entries = getJournalEntries().filter(e => e.id !== id);
-    localStorage.setItem(JOURNAL_KEY, JSON.stringify(entries));
+    localStorage.setItem(getJournalKey(), JSON.stringify(entries));
 }

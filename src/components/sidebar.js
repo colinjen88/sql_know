@@ -4,16 +4,18 @@
 
 import { navigate, getCurrentRoute } from '../router.js';
 import { getOverallProgress } from './progressRing.js';
+import { store } from '../store.js';
+import { getData } from '../data/dataLoader.js';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', icon: 'home', label: '首頁總覽', section: 'main' },
-  { id: 'syntax', icon: 'book-open', label: '語法字典', section: 'learn', badge: '5' },
-  { id: 'concepts', icon: 'lightbulb', label: '核心觀念', section: 'learn', badge: '2' },
-  { id: 'cookbook', icon: 'chef-hat', label: '實戰食譜', section: 'learn', badge: '2' },
-  { id: 'tech', icon: 'wrench', label: '技術選型', section: 'learn', badge: 'New' },
-  { id: 'guide', icon: 'ruler', label: '開發規範', section: 'learn', badge: 'New' },
-  { id: 'roadmap', icon: 'map', label: '學習路徑', section: 'track' },
-  { id: 'journal', icon: 'notebook-pen', label: '學習日誌', section: 'track' },
+  { id: 'dashboard', icon: 'home', labelKey: 'dashboard', defaultLabel: '首頁總覽', section: 'main' },
+  { id: 'syntax', icon: 'book-open', labelKey: 'syntax', defaultLabel: '參考字典', section: 'learn' },
+  { id: 'concepts', icon: 'lightbulb', labelKey: 'concepts', defaultLabel: '核心觀念', section: 'learn' },
+  { id: 'cookbook', icon: 'chef-hat', labelKey: 'cookbook', defaultLabel: '實戰食譜', section: 'learn' },
+  { id: 'tech', icon: 'wrench', labelKey: 'tech', defaultLabel: '技術選型', section: 'learn' },
+  { id: 'guide', icon: 'ruler', labelKey: 'guide', defaultLabel: '開發規範', section: 'learn' },
+  { id: 'roadmap', icon: 'map', labelKey: 'roadmap', defaultLabel: '學習路徑', section: 'track' },
+  { id: 'journal', icon: 'notebook-pen', labelKey: 'journal', defaultLabel: '學習日誌', section: 'track' },
 ];
 
 const ICON_SVG = {
@@ -26,6 +28,9 @@ const ICON_SVG = {
   'search': '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   'wrench': '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
   'ruler': '<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0l12.6 12.6z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/>',
+  'database': '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>',
+  'cpu': '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M15 2v2"/><path d="M9 2v2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 20v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/>',
+  'chevron-down': '<path d="m6 9 6 6 6-6"/>',
 };
 
 function makeSvg(iconId, cls = '') {
@@ -37,17 +42,31 @@ export function renderSidebar() {
   const current = getCurrentRoute();
   const activePath = current ? current.path : 'dashboard';
   const progress = getOverallProgress();
+  const currentKB = store.getCurrentKB();
+
+  // Dynamic badges
+  const counts = {
+    syntax: getData('syntax').length,
+    concepts: getData('concepts').length,
+    cookbook: getData('cookbook').length,
+  };
+
+  const navWithBadges = NAV_ITEMS.map(item => ({
+    ...item,
+    label: currentKB.labels[item.id] || item.defaultLabel,
+    badge: counts[item.id] ? counts[item.id].toString() : null
+  }));
 
   const sections = {
-    main: NAV_ITEMS.filter(i => i.section === 'main'),
-    learn: NAV_ITEMS.filter(i => i.section === 'learn'),
-    track: NAV_ITEMS.filter(i => i.section === 'track'),
+    main: navWithBadges.filter(i => i.section === 'main'),
+    learn: navWithBadges.filter(i => i.section === 'learn'),
+    track: navWithBadges.filter(i => i.section === 'track'),
   };
 
   sidebar.innerHTML = `
     <div class="logo-area">
-      <div class="logo-icon">${makeSvg('home', '')}</div>
-      <div class="logo-text">SQL Mastery</div>
+      <div class="logo-icon" style="background: ${currentKB.color}">${makeSvg(currentKB.icon, '')}</div>
+      <div class="logo-text" style="color: var(--text-primary)">${currentKB.name}</div>
     </div>
     
     <nav class="sidebar-nav">
@@ -58,11 +77,11 @@ export function renderSidebar() {
     
     <div class="sidebar-progress" style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border-color);">
       <div class="sidebar-progress-label" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px; color:var(--text-muted);">
-        <span>整體進度</span>
+        <span>${currentKB.id.toUpperCase()} 進度</span>
         <span>${progress}%</span>
       </div>
       <div class="sidebar-progress-bar">
-        <div class="sidebar-progress-fill" style="width: ${progress}%"></div>
+        <div class="sidebar-progress-fill" style="width: ${progress}%; background: ${currentKB.color}"></div>
       </div>
     </div>
   `;

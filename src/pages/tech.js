@@ -2,11 +2,12 @@
 // Tech Stack Page
 // =========================================
 
-import { techStackData } from '../data/techStack.js';
+import { getData } from '../data/dataLoader.js';
 import { navigate } from '../router.js';
 import { renderCodeBlock } from '../components/codeBlock.js';
 
 export function renderTech(params = {}) {
+  const techStackData = getData('tech');
   const main = document.getElementById('main-content');
 
   // 1. Detail View

@@ -2,7 +2,7 @@
 // Roadmap Page — Learning Path & Skill Tree
 // =========================================
 
-import { roadmapData } from '../data/roadmap.js';
+import { getData } from '../data/dataLoader.js';
 import {
     isSkillComplete,
     setSkillComplete,
@@ -13,6 +13,7 @@ import { renderSidebar } from '../components/sidebar.js';
 import { navigate } from '../router.js';
 
 export function renderRoadmap() {
+    const roadmapData = getData('roadmap');
     const main = document.getElementById('main-content');
     const progress = getOverallProgress();
 

@@ -2,10 +2,11 @@
 // Style Guide Page
 // =========================================
 
-import { styleGuideData } from '../data/styleGuide.js';
+import { getData } from '../data/dataLoader.js';
 import { renderCodeBlock } from '../components/codeBlock.js';
 
-export function renderGuide(params = {}) {
+export function renderGuide() {
+    const styleGuideData = getData('guide');
     const main = document.getElementById('main-content');
 
     main.innerHTML = `

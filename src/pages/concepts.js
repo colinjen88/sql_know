@@ -2,26 +2,44 @@
 // Core Concepts Page
 // =========================================
 
-import { conceptsData } from '../data/concepts.js';
+import { getData } from '../data/dataLoader.js';
 import { renderCodeBlock } from '../components/codeBlock.js';
 import { renderExpandableSection } from '../components/expandableSection.js';
 import { navigate } from '../router.js';
+import { loadMarkdown } from '../utils/mdLoader.js';
+import { store } from '../store.js';
 
-export function renderConcepts(params = {}) {
+export async function renderConcepts(params = {}) {
+  const conceptsData = getData('concepts');
   const main = document.getElementById('main-content');
+  const query = params.q || '';
 
   if (params.id) {
-    renderConceptDetail(params.id);
+    await renderConceptDetail(params.id);
     return;
   }
 
+  const filtered = conceptsData.filter(item =>
+    item.name.toLowerCase().includes(query.toLowerCase()) ||
+    item.eli5.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const currentKB = store.getCurrentKB();
+
   main.innerHTML = `
     <div class="fade-slide-in">
-      <h2 class="page-title">🧠 核心觀念</h2>
-      <p class="page-desc">理解「為什麼」要這樣做，面試與設計資料庫時使用。</p>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+        <div>
+          <h2 class="page-title">🧠 ${currentKB.labels.concepts}</h2>
+          <p class="page-desc">${currentKB.descriptions.concepts}</p>
+        </div>
+        <div class="search-bar" style="width: 300px;">
+          <input type="text" class="search-input" id="concepts-search" placeholder="搜尋觀念..." value="${query}">
+        </div>
+      </div>
 
       <div class="grid-3">
-        ${conceptsData.map((item, i) => `
+        ${filtered.map((item, i) => `
           <div class="card card-clickable stagger-item" data-id="${item.id}">
             <div class="card-header">
               <div class="card-icon amber">${item.emoji}</div>
@@ -36,15 +54,35 @@ export function renderConcepts(params = {}) {
           </div>
         `).join('')}
       </div>
+      ${filtered.length === 0 ? '<div class="empty-state"><div class="empty-state-emoji">🔍</div><div class="empty-state-text">找不到相關觀念</div></div>' : ''}
     </div>
   `;
+
+  // Search input handler
+  const searchInput = document.getElementById('concepts-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value;
+      navigate('concepts', { q });
+
+      // Maintain focus
+      setTimeout(() => {
+        const input = document.getElementById('concepts-search');
+        if (input) {
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+      }, 0);
+    });
+  }
 
   main.querySelectorAll('.card-clickable[data-id]').forEach(card => {
     card.addEventListener('click', () => navigate('concepts', { id: card.dataset.id }));
   });
 }
 
-function renderConceptDetail(id) {
+async function renderConceptDetail(id) {
+  const conceptsData = getData('concepts');
   const main = document.getElementById('main-content');
   const item = conceptsData.find(c => c.id === id);
 
@@ -52,6 +90,13 @@ function renderConceptDetail(id) {
     main.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">❓</div><div class="empty-state-text">找不到此觀念</div></div>';
     return;
   }
+
+  // Show loading state
+  main.innerHTML = `<div class="loading">Loading content...</div>`;
+
+  const currentKB = store.getCurrentKB().id;
+  const mdPath = `/data/${currentKB}/concepts/${item.id}.md`;
+  const htmlContent = await loadMarkdown(mdPath);
 
   main.innerHTML = `
     <div class="detail-view">
@@ -64,49 +109,8 @@ function renderConceptDetail(id) {
         <h2 class="detail-title">${item.name}</h2>
       </div>
 
-      <div class="detail-section">
-        <h3 class="detail-section-title">💡 一句話解釋 (ELI5)</h3>
-        <div class="callout">${item.eli5}</div>
-      </div>
-
-      <div class="detail-section">
-        <h3 class="detail-section-title">🎯 生活化比喻</h3>
-        <div class="detail-section-content">
-          <p>${item.analogy}</p>
-        </div>
-      </div>
-
-      <div class="detail-section">
-        <h3 class="detail-section-title">⚠️ 為什麼重要？</h3>
-        <div class="detail-section-content">
-          <ul>
-            ${item.whyMatters.map(w => `<li>${w}</li>`).join('')}
-          </ul>
-        </div>
-      </div>
-
-      ${item.visual ? `
-        <div class="detail-section">
-          <h3 class="detail-section-title">📊 視覺化</h3>
-          ${renderCodeBlock(item.visual, 'text')}
-        </div>
-      ` : ''}
-
-      ${item.typeTable ? `
-        <div class="detail-section">
-          <h3 class="detail-section-title">📦 型別總覽</h3>
-          <table class="data-table">
-            <thead><tr><th>型別</th><th>說明</th><th>用途範例</th></tr></thead>
-            <tbody>
-              ${item.typeTable.map(t => `<tr><td><code>${t.type}</code></td><td>${t.desc}</td><td>${t.example}</td></tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      ` : ''}
-
-      <div class="detail-section">
-        <h3 class="detail-section-title">💻 程式碼範例</h3>
-        ${renderCodeBlock(item.codeExample)}
+      <div class="markdown-content">
+        ${htmlContent}
       </div>
 
        ${item.advanced ? renderExpandableSection(

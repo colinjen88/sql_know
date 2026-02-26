@@ -12,7 +12,8 @@
     "vite": "^6.1.0"
   },
   "dependencies": {
-    "prismjs": "^1.29.0",
-    "lucide": "^0.474.0"
+    "lucide": "^0.474.0",
+    "marked": "^17.0.3",
+    "prismjs": "^1.29.0"
   }
 }

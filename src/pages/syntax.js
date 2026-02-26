@@ -2,14 +2,17 @@
 // Syntax Dictionary Page
 // =========================================
 
-import { syntaxData } from '../data/syntax.js';
+import { getData } from '../data/dataLoader.js';
 import { renderCodeBlock } from '../components/codeBlock.js';
 import { renderExpandableSection } from '../components/expandableSection.js';
 import { navigate } from '../router.js';
+import { loadMarkdown } from '../utils/mdLoader.js';
+import { store } from '../store.js';
 
+const syntaxData = getData('syntax');
 let currentFilter = '';
 
-export function renderSyntax(params = {}) {
+export async function renderSyntax(params = {}) {
   const main = document.getElementById('main-content');
 
   // Support Global Search Param
@@ -18,7 +21,7 @@ export function renderSyntax(params = {}) {
   }
 
   if (params.id) {
-    renderSyntaxDetail(params.id);
+    await renderSyntaxDetail(params.id);
     return;
   }
 
@@ -30,10 +33,12 @@ export function renderSyntax(params = {}) {
     )
     : syntaxData;
 
+  const currentKB = store.getCurrentKB();
+
   main.innerHTML = `
     <div class="fade-slide-in">
-      <h2 class="page-title">📖 語法字典</h2>
-      <p class="page-desc">當你忘記指令怎麼寫時，來這裡快速查閱。點擊卡片查看完整語法說明。</p>
+      <h2 class="page-title">📖 ${currentKB.labels.syntax}</h2>
+      <p class="page-desc">${currentKB.descriptions.syntax} 點擊卡片查看完整詳細說明。</p>
 
       <div class="filter-bar">
         <input class="filter-input" type="text" placeholder="搜尋指令名稱..." id="syntax-search" value="${currentFilter}" />
@@ -72,8 +77,9 @@ export function renderSyntax(params = {}) {
 
   const searchInput = document.getElementById('syntax-search');
   if (searchInput) {
+    searchInput.value = currentFilter;
     searchInput.addEventListener('input', (e) => {
-      currentFilter = e.target.value;
+      currentFilter = e.target.value.toLowerCase();
       renderSyntax(params);
 
       // Fix Focus Loss Bug
@@ -96,7 +102,7 @@ export function renderSyntax(params = {}) {
   });
 }
 
-function renderSyntaxDetail(id) {
+async function renderSyntaxDetail(id) {
   const main = document.getElementById('main-content');
   const item = syntaxData.find(s => s.id === id);
 
@@ -104,6 +110,13 @@ function renderSyntaxDetail(id) {
     main.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">❓</div><div class="empty-state-text">找不到此語法</div></div>';
     return;
   }
+
+  // Show loading state
+  main.innerHTML = `<div class="loading">Loading content...</div>`;
+
+  const currentKB = store.getCurrentKB().id;
+  const mdPath = `/data/${currentKB}/syntax/${item.id}.md`;
+  const htmlContent = await loadMarkdown(mdPath);
 
   main.innerHTML = `
     <div class="detail-view">
@@ -118,36 +131,11 @@ function renderSyntaxDetail(id) {
         <span class="tag tag-emerald">Phase ${item.phase}</span>
       </div>
 
-      <div class="card" style="margin-bottom: 24px;">
-        <div class="card-body">${item.summary}</div>
+      <div class="markdown-content">
+        ${htmlContent}
       </div>
 
       ${item.warning ? `<div class="callout warning" style="margin-bottom: 24px;"><strong>⚠️ 重要提醒：</strong> ${item.warning}</div>` : ''}
-
-      <div class="detail-section">
-        <h3 class="detail-section-title">📐 語法結構</h3>
-        ${renderCodeBlock(item.syntax)}
-      </div>
-
-      <div class="detail-section">
-        <h3 class="detail-section-title">📋 參數說明</h3>
-        <table class="data-table">
-          <thead><tr><th>參數</th><th>說明</th></tr></thead>
-          <tbody>
-            ${item.params.map(p => `<tr><td><code>${p.name}</code></td><td>${p.desc}</td></tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="detail-section">
-        <h3 class="detail-section-title">🚀 範例程式碼</h3>
-        ${renderCodeBlock(item.example)}
-      </div>
-
-      <div class="detail-section">
-        <h3 class="detail-section-title">📤 回傳結果</h3>
-        <div class="callout">${item.result}</div>
-      </div>
 
       ${item.advanced ? renderExpandableSection(
     `🚀 進階：${item.advanced.title}`,
