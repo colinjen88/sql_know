@@ -1,30 +1,40 @@
 # 基礎 RAG 檢索增強生成
 
-RAG (Retrieval-Augmented Generation) 是目前解決 LLM 幻覺、賦予模型最新知識的最強方案。
+這是一個經典的 RAG 流程設計，適用於建立「文件聊天機器人」或「企業內部知識助手」。
 
-## 🛠️ 實作步驟
+## 📋 準備工作
+- 一個 LLM API (OpenAI / Gemini / Ollama)。
+- 一個向量資料庫 (Pinecone / Chroma / Qdrant)。
+- 一個 Embedding 模型。
 
-### 1. 準備文件 (Ingestion)
-將您的知識庫內容（如 Markdown, PDF, HTML）收集起來。
+## 🚀 實作步驟
 
-### 2. 切片與向量化 (Chunking & Embedding)
-- 使用 `RecursiveCharacterTextSplitter` 將長文章切成適當大小（例如 500 tokens）。
-- 調用 Embedding 模型（如 OpenAI `text-embedding-3-small`）轉換為向量。
+### 第一步：數據處理 (ETL)
+讀取原有的知識庫檔案（如 .md），並進行切分。
+> **Tip**: 建議加上 10-15% 的重疊 (Overlap)，避免語意在邊界處斷裂。
 
-### 3. 儲存至向量資料庫 (Storage)
-推薦工具：`Pinecone`, `ChromaDB`, 或 `PostgreSQL + pgvector`。
+### 第二步：向量化與存儲
+調用 Embedding API 將片段轉換為向量。
+```javascript
+// 範例：將片段存入
+const vector = await getEmbedding(textChunk);
+await vectorDB.upsert(id, vector, { text: textChunk });
+```
 
-### 4. 檢索與生成 (Retrieval & Generation)
-- **使用者詢問**：“SELECT 怎麼寫？”
-- **檢索**：在向量庫中找出最相關的 3 段語法說明。
-- **送往 LLM**：
-  ```text
-  你是一位助教，請根據以下資訊回答問題：
-  ---
-  {檢索到的內容}
-  ---
-  問題：{使用者詢問}
-  ```
+### 第三步：構建對話檢索
+1. 獲取用戶輸入。
+2. 檢索最相似的 3-5 個片段。
+3. 建立 **System Prompt**：
+   ```text
+   你是一位專業的資料庫管理員。請僅根據以下提供的 <Context> 回答。
+   如果答案不在 Context 中，請誠實回答「我不知道」，不要自行對外搜尋。
+   
+   <Context>
+   ${retrieved_chunks}
+   </Context>
+   ```
 
-## 💡 小撇步
-實作 RAG 時，切片的質量與檢索後的 **Re-ranking** 通常比模型本身更重要！
+## 🛠️ 常見優化技巧
+- **Hybrid Search**：結合傳統關鍵字搜尋與語意搜尋。
+- **Rerank**：檢索出 20 個片段，再用一個更高精確的模型挑選出前 5 個。
+- **Prompt Compression**：如果檢索到的內容太多，嘗試先摘要再回答。

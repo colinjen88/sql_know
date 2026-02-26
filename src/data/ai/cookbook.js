@@ -109,5 +109,42 @@ SQL: SELECT COUNT(*) FROM users WHERE age > 20;`
     codeExample: `Generator -> [初步草稿]
 Evaluator -> "第 2 點邏輯不通，且格式不符合 JSON。"
 Generator (優化後) -> [修正後的最終版本]`
+  },
+  {
+    id: 'multi-agent-crew',
+    name: '多智能體協作 (Multi-Agent)',
+    emoji: '🤝',
+    phase: 3,
+    difficulty: 'Advanced',
+    desc: '定義多個具備不同角色 (Role) 的 AI，讓他們互相分工完成一個大型專案（如：寫一份完整的市場報告）。',
+    steps: [
+      '1. **角色定義 (Agents)**：例如定義「研究員」、「主編」與「校對員」。',
+      '2. **任務分配 (Tasks)**：研究員負責蒐集數據，主編負責統整撰稿，校對員負責檢查錯誤。',
+      '3. **流程設計 (Process)**：決定是循序執行 (Sequential) 還是並行執行 (Hierarchical)。',
+      '4. **工具綁定**：讓研究員具備「上網搜尋」工具，主編具備「讀取本地文件」工具。'
+    ],
+    codeExample: `// CrewAI 邏輯示意
+const researcher = new Agent({ role: 'Researcher', goal: 'Find AI news' });
+const writer = new Agent({ role: 'Writer', goal: 'Write a blog post' });
+const crew = new Crew({ agents: [researcher, writer], tasks: [...] });`
+  },
+  {
+    id: 'auto-evaluation',
+    name: '自動化評估流程 (G-Eval)',
+    emoji: '🧪',
+    phase: 3,
+    difficulty: 'Intermediate',
+    desc: '在發布模型前，使用一組標準化測試題 (Dataset)，並由模型自動給予分數與改善建議。',
+    steps: [
+      '1. **建立測試集**：準備 100 組預期的「問題-答案對」。',
+      '2. **批量執行**：將問題餵給不同版本或參數的模型。',
+      '3. **AI 打分**：請 GPT-4 根據「連貫性」、「準確性」與「格式」進行 1-5 分的評比。',
+      '4. **生成熱點圖**：找出模型最容易犯錯的場景。'
+    ],
+    codeExample: `### 評估指令範例
+請根據以下指標對 AI 的回答進行評分：
+1. 準確性：是否符合提供的參考文件？
+2. 簡潔性：是否有多餘的廢話？
+請輸出 JSON：{"score": 4.5, "reason": "內容精確但格式不符。"}`
   }
 ];

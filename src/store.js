@@ -52,7 +52,8 @@ const KNOWLEDGE_BASES = {
       roadmap: '技術雷達',
       journal: '開發日誌',
       news: 'AI 動態',
-      playground: '提示詞實驗室'
+      playground: '提示詞實驗室',
+      resources: '資源工具箱'
     },
     navGroups: [
       { id: 'main', label: '' },
@@ -67,6 +68,7 @@ const KNOWLEDGE_BASES = {
       { id: 'syntax', icon: 'book-open', label: '提示詞框架', section: 'learn' },
       { id: 'cookbook', icon: 'chef-hat', label: '實戰工作流', section: 'tools' },
       { id: 'playground', icon: 'flask-conical', label: '提示詞實驗室', section: 'tools' },
+      { id: 'resources', icon: 'wrench', label: '資源工具箱', section: 'tools' },
       { id: 'news', icon: 'rss', label: 'AI 動態', section: 'news' },
       { id: 'roadmap', icon: 'map', label: '技術雷達', section: 'track' },
       { id: 'journal', icon: 'notebook-pen', label: '開發日誌', section: 'track' },

@@ -1,27 +1,22 @@
 # Tokens (標記)
 
-Tokens 就像是 LLM 的「文字碎屑」。它不是以一個個字來處理，而是把字拆成更小的單位來理解。
+Tokens 是大型語言模型（LLM）處理文字的基本單位。
 
-## 🎯 生活化比喻
-像是樂高積木。每個積木塊都是一個 Token，組合成完整的模型（句子）。1000 個 Tokens 約等於 750 個中文字。
+## 🧩 什麼是 Token？
+模型不直接讀取「字」，而是將文字拆碎。在 GPT 系列中，大約 1000 個 Tokens 等於 750 個英文單字。
+- 對於**英文**：一個常見單字可能是一個 Token，長單字可能拆為多個。
+- 對於**中文**：中文字在不同的 Tokenizer 下可能有不同表現（有時一字一個，有時多字一個）。
 
-## ⚠️ 為什麼重要？
-- Token 是收費的單位：不管是 API 還是運算資源。
-- Context Window 的限制：LLM 一次能讀多少 Token 是有限制的。
-- 中文 Token 效率通常比英文低。
+## 💰 為什麼這很重要？
+1. **計費基礎**：幾乎所有 AI API（OpenAI, Anthropic）都是按 Token 數收費。
+2. **上下文限制 (Context Window)**：每個模型都有處理上限。如果你的 Prompt 太長，超過了限制，模型會「忘記」開頭的內容。
+3. **計算性能**：Token 越多，運算所需的時間與記憶體就越多。
 
-## 📊 視覺化
-```text
-文字: "Hello world"
-Tokens: ["Hello", " world"]
+## 🔍 直觀範例
+> "Hello world" -> ["Hello", " world"] (2 Tokens)
+> 
+> "台北市" -> ["台", "北", "市"] (可能是 3 標記，取決於模型)
 
-文字: "今天天氣不錯"
-Tokens: ["今", "天天", "氣", "不", "錯"]
-```
-
-## 💻 程式碼範例
-```javascript
-// Tokenizer 範例 (偽代碼)
-const tokens = tokenizer.encode("Hello world");
-console.log(tokens.length); // 2
-```
+## 💡 開發建議
+- 使用 **Tiktoken** (OpenAI 官方工具) 或線上 Tokenizer 預估成本。
+- 對於超長文件，應使用 **RAG (檢索增強生成)** 僅擷取必要片段，而非全量輸入。

@@ -19,6 +19,11 @@ export async function renderNews() {
       </div>
       <p class="page-desc">訂閱來自全球的 AI 相關新聞與技術部落格，掌握第一手情報。</p>
 
+      <div class="filter-bar" id="news-filters">
+        <button class="filter-tag active" data-source="all">全部來源</button>
+        ${feeds.map(f => `<button class="filter-tag" data-source="${f.name}">${f.name}</button>`).join('')}
+      </div>
+
       <div id="news-container" class="news-grid">
         <div class="loading">正在載入並翻譯新聞情報...</div>
       </div>
@@ -72,21 +77,38 @@ export async function renderNews() {
     return { ...item, zhTitle, zhDesc };
   }));
 
-  container.innerHTML = translatedItems.map(item => `
-    <div class="news-card card stagger-item">
-      <div class="news-source">${item.source}</div>
-      <h3 class="news-title">
-        <a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.zhTitle}</a>
-      </h3>
-      <div class="news-meta">
-        <span>${item.pubDate.toLocaleDateString()}</span>
-        ${item.author ? `<span>• ${item.author}</span>` : ''}
+  const renderItems = (items) => {
+    container.innerHTML = items.map(item => `
+      <div class="news-card card stagger-item">
+        <div class="news-source">${item.source}</div>
+        <h3 class="news-title">
+          <a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.zhTitle}</a>
+        </h3>
+        <div class="news-meta">
+          <span>${item.pubDate.toLocaleDateString()}</span>
+          ${item.author ? `<span>• ${item.author}</span>` : ''}
+        </div>
+        <div class="news-description">${item.zhDesc}...</div>
+        <div class="news-original" style="font-size: 11px; color: var(--text-muted); margin-top: 8px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
+          原文: ${item.title}
+        </div>
+        <a href="${item.link}" target="_blank" class="news-link">閱讀更多 →</a>
       </div>
-      <div class="news-description">${item.zhDesc}...</div>
-      <div class="news-original" style="font-size: 11px; color: var(--text-muted); margin-top: 8px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
-        原文: ${item.title}
-      </div>
-      <a href="${item.link}" target="_blank" class="news-link">閱讀更多 →</a>
-    </div>
-  `).join('');
+    `).join('');
+  };
+
+  renderItems(translatedItems);
+
+  // Filter logic
+  document.querySelectorAll('#news-filters .filter-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelector('#news-filters .filter-tag.active').classList.remove('active');
+      tag.classList.add('active');
+      const source = tag.dataset.source;
+      const filtered = source === 'all' 
+        ? translatedItems 
+        : translatedItems.filter(item => item.source === source);
+      renderItems(filtered);
+    });
+  });
 }
