@@ -9,10 +9,10 @@ import { navigate } from '../router.js';
 import { loadMarkdown } from '../utils/mdLoader.js';
 import { store } from '../store.js';
 
-const syntaxData = getData('syntax');
 let currentFilter = '';
 
 export async function renderSyntax(params = {}) {
+  const syntaxData = getData('syntax');
   const main = document.getElementById('main-content');
 
   // Support Global Search Param
@@ -35,16 +35,19 @@ export async function renderSyntax(params = {}) {
 
   const currentKB = store.getCurrentKB();
 
+  const categories = [...new Set(syntaxData.map(s => s.category))];
+
   main.innerHTML = `
     <div class="fade-slide-in">
       <h2 class="page-title">📖 ${currentKB.labels.syntax}</h2>
       <p class="page-desc">${currentKB.descriptions.syntax} 點擊卡片查看完整詳細說明。</p>
 
       <div class="filter-bar">
-        <input class="filter-input" type="text" placeholder="搜尋指令名稱..." id="syntax-search" value="${currentFilter}" />
+        <input class="filter-input" type="text" placeholder="搜尋名稱或內容..." id="syntax-search" value="${currentFilter}" />
         <button class="filter-tag ${!currentFilter ? 'active' : ''}" data-filter="">全部</button>
-        <button class="filter-tag ${currentFilter === 'DDL' ? 'active' : ''}" data-filter="DDL">DDL</button>
-        <button class="filter-tag ${currentFilter === 'DML' ? 'active' : ''}" data-filter="DML">DML</button>
+        ${categories.map(cat => `
+          <button class="filter-tag ${currentFilter === cat ? 'active' : ''}" data-filter="${cat}">${cat}</button>
+        `).join('')}
       </div>
 
       <div class="grid-3">
@@ -103,6 +106,7 @@ export async function renderSyntax(params = {}) {
 }
 
 async function renderSyntaxDetail(id) {
+  const syntaxData = getData('syntax');
   const main = document.getElementById('main-content');
   const item = syntaxData.find(s => s.id === id);
 
@@ -114,9 +118,20 @@ async function renderSyntaxDetail(id) {
   // Show loading state
   main.innerHTML = `<div class="loading">Loading content...</div>`;
 
+  // Try to load markdown, but fallback to JS data if needed
   const currentKB = store.getCurrentKB().id;
   const mdPath = `/data/${currentKB}/syntax/${item.id}.md`;
-  const htmlContent = await loadMarkdown(mdPath);
+  let htmlContent = '';
+  
+  try {
+    htmlContent = await loadMarkdown(mdPath);
+    // If it's an error message from loadMarkdown, treat it as "not found"
+    if (htmlContent.includes('error-msg')) {
+        htmlContent = null;
+    }
+  } catch (e) {
+    htmlContent = null;
+  }
 
   main.innerHTML = `
     <div class="detail-view">
@@ -131,11 +146,43 @@ async function renderSyntaxDetail(id) {
         <span class="tag tag-emerald">Phase ${item.phase}</span>
       </div>
 
-      <div class="markdown-content">
-        ${htmlContent}
-      </div>
+      ${htmlContent ? `
+        <div class="markdown-content">
+          ${htmlContent}
+        </div>
+      ` : `
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-body">${item.summary}</div>
+        </div>
 
-      ${item.warning ? `<div class="callout warning" style="margin-bottom: 24px;"><strong>⚠️ 重要提醒：</strong> ${item.warning}</div>` : ''}
+        ${item.warning ? `<div class="callout warning" style="margin-bottom: 24px;"><strong>⚠️ 重要提醒：</strong> ${item.warning}</div>` : ''}
+
+        ${item.syntax ? `
+          <div class="detail-section">
+            <h3 class="detail-section-title">📐 語法結構</h3>
+            ${renderCodeBlock(item.syntax)}
+          </div>
+        ` : ''}
+
+        ${item.params ? `
+          <div class="detail-section">
+            <h3 class="detail-section-title">📋 參數說明</h3>
+            <table class="data-table">
+              <thead><tr><th>參數</th><th>說明</th></tr></thead>
+              <tbody>
+                ${item.params.map(p => `<tr><td><code>${p.name}</code></td><td>${p.desc}</td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : ''}
+
+        ${item.example ? `
+          <div class="detail-section">
+            <h3 class="detail-section-title">🚀 範例程式碼</h3>
+            ${renderCodeBlock(item.example)}
+          </div>
+        ` : ''}
+      `}
 
       ${item.advanced ? renderExpandableSection(
     `🚀 進階：${item.advanced.title}`,

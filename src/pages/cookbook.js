@@ -59,9 +59,20 @@ async function renderCookbookDetail(id) {
   // Show loading state
   main.innerHTML = `<div class="loading">Loading content...</div>`;
 
+  // Try to load markdown, but fallback to JS data if needed
   const currentKB = store.getCurrentKB().id;
   const mdPath = `/data/${currentKB}/cookbook/${item.id}.md`;
-  const htmlContent = await loadMarkdown(mdPath);
+  let htmlContent = '';
+  
+  try {
+    htmlContent = await loadMarkdown(mdPath);
+    // If it's an error message from loadMarkdown, treat it as "not found"
+    if (htmlContent.includes('error-msg')) {
+        htmlContent = null;
+    }
+  } catch (e) {
+    htmlContent = null;
+  }
 
   main.innerHTML = `
     <div class="detail-view">
@@ -75,9 +86,33 @@ async function renderCookbookDetail(id) {
         <span class="tag tag-emerald">${item.difficulty}</span>
       </div>
 
-      <div class="markdown-content">
-        ${htmlContent}
-      </div>
+      ${htmlContent ? `
+        <div class="markdown-content">
+          ${htmlContent}
+        </div>
+      ` : `
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-body">${item.desc || item.context}</div>
+        </div>
+
+        ${item.steps ? `
+          <div class="detail-section">
+            <h3 class="detail-section-title">📝 實作步驟</h3>
+            <div class="detail-section-content">
+              <ul>
+                ${item.steps.map(s => `<li>${s}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        ` : ''}
+
+        ${item.codeExample ? `
+          <div class="detail-section">
+            <h3 class="detail-section-title">💻 範例程式碼</h3>
+            ${renderCodeBlock(item.codeExample)}
+          </div>
+        ` : ''}
+      `}
 
       ${item.tip ? `
         <div class="callout" style="margin-bottom: 24px;">

@@ -6,8 +6,10 @@ import { getData } from '../data/dataLoader.js';
 import { renderProgressRing, getOverallProgress, getPhaseProgress } from '../components/progressRing.js';
 import { navigate } from '../router.js';
 import { store } from '../store.js';
+import { fetchRSS } from '../utils/rssFetcher.js';
+import { translateToZh } from '../utils/translator.js';
 
-export function renderDashboard() {
+export async function renderDashboard() {
   const currentKB = store.getCurrentKB();
   const syntaxData = getData('syntax');
   const conceptsData = getData('concepts');
@@ -20,14 +22,10 @@ export function renderDashboard() {
   const totalSkills = roadmapData.reduce((sum, p) => sum + p.skills.length, 0);
   const completedSkills = Math.round((progress / 100) * totalSkills);
 
-  const objectiveText = currentKB.id === 'sql'
-    ? '透過實作「任務管理系統」，從零掌握 SQL 資料庫技能。'
-    : '掌握從 Prompt Engineering 到 RAG 的全方位 AI 開發能力。';
-
   main.innerHTML = `
     <div class="fade-slide-in">
       <h2 class="page-title">歡迎回來！👋</h2>
-      <p class="page-desc">繼續你的 ${currentKB.name} 學習之旅。${objectiveText}</p>
+      <p class="page-desc">繼續你的 ${currentKB.name} 學習之旅。透過系統化筆記，從零掌握關鍵技能。</p>
 
       <!-- Stats Row -->
       <div class="grid-3" style="margin-bottom: 28px;">
@@ -52,27 +50,6 @@ export function renderDashboard() {
             <div class="stat-label">${currentKB.labels.cookbook}</div>
           </div>
         </div>
-        <div class="stat-card stagger-item card-clickable" data-nav="tech">
-          <div class="stat-icon card-icon cyan">🔧</div>
-          <div class="stat-info">
-            <div class="stat-value">2</div>
-            <div class="stat-label">${currentKB.labels.tech || '技術選型'}</div>
-          </div>
-        </div>
-        <div class="stat-card stagger-item card-clickable" data-nav="guide">
-          <div class="stat-icon card-icon amber">📏</div>
-          <div class="stat-info">
-            <div class="stat-value">3</div>
-            <div class="stat-label">${currentKB.labels.guide || '開發規範'}</div>
-          </div>
-        </div>
-        <div class="stat-card stagger-item card-clickable" data-nav="roadmap">
-          <div class="stat-icon card-icon" style="background: rgba(139,92,246,0.15)">🎯</div>
-          <div class="stat-info">
-            <div class="stat-value">${completedSkills}/${totalSkills}</div>
-            <div class="stat-label">技能完成</div>
-          </div>
-        </div>
       </div>
 
       <!-- Progress & Phases -->
@@ -94,7 +71,7 @@ export function renderDashboard() {
           <div class="card-header">
             <div class="card-icon amber">🗺️</div>
             <div>
-              <div class="card-title">三階段進度</div>
+              <div class="card-title">分階段進度</div>
               <div class="card-subtitle">Phase 1 → 2 → 3</div>
             </div>
           </div>
@@ -103,6 +80,23 @@ export function renderDashboard() {
           </div>
         </div>
       </div>
+
+      <!-- AI News Highlight (Only for AI KB) -->
+      ${currentKB.id === 'ai' ? `
+        <div class="card stagger-item" style="margin-bottom: 28px;">
+          <div class="card-header">
+            <div class="card-icon cyan">📡</div>
+            <div>
+              <div class="card-title">AI 動態快報</div>
+              <div class="card-subtitle">最新技術情報</div>
+            </div>
+            <button class="btn btn-primary" style="margin-left: auto; padding: 4px 12px; font-size: 12px;" data-nav="news">查看全部</button>
+          </div>
+          <div class="card-body" id="news-highlight">
+            <div class="loading">正在獲取最新情報...</div>
+          </div>
+        </div>
+      ` : ''}
 
       <div style="margin-bottom: 12px;">
         <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary);">⚡ 快速入口 (${currentKB.labels.syntax})</h3>
@@ -136,6 +130,38 @@ export function renderDashboard() {
       }
     });
   });
+
+  // Handle news highlight
+  if (currentKB.id === 'ai') {
+    const feeds = currentKB.rssFeeds || [];
+    if (feeds.length > 0) {
+      // Fetch first feed for highlight
+      fetchRSS(feeds[0].url).then(async data => {
+        const highlightContainer = document.getElementById('news-highlight');
+        if (data && data.items && highlightContainer) {
+          const items = data.items.slice(0, 3);
+          
+          // Translate highlights
+          const translatedItems = await Promise.all(items.map(async item => {
+            const zhTitle = await translateToZh(item.title);
+            return { ...item, zhTitle };
+          }));
+
+          highlightContainer.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              ${translatedItems.map(item => `
+                <div style="padding-bottom: 10px; border-bottom: 1px solid var(--border-color); last-child { border: none; }">
+                  <div style="font-size: 11px; color: var(--color-primary); font-weight: 700;">${feeds[0].name}</div>
+                  <a href="${item.link}" target="_blank" style="text-decoration: none; color: var(--text-primary); font-weight: 500; font-size: 14px; display: block; margin: 4px 0;">${item.zhTitle}</a>
+                  <div style="font-size: 12px; color: var(--text-muted);">${new Date(item.pubDate).toLocaleDateString()}</div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+      });
+    }
+  }
 }
 
 function renderPhaseBar(phase) {

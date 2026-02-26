@@ -16,16 +16,20 @@ import { renderJournal } from './pages/journal.js';
 
 import { renderTech } from './pages/tech.js';
 import { renderGuide } from './pages/guide.js';
+import { renderNews } from './pages/news.js';
+import { renderPlayground } from './pages/playground.js';
 
 // Register routes
-registerRoute('dashboard', (params) => renderDashboard(params));
-registerRoute('syntax', (params) => renderSyntax(params));
-registerRoute('concepts', (params) => renderConcepts(params));
-registerRoute('cookbook', (params) => renderCookbook(params));
+registerRoute('dashboard', async (params) => await renderDashboard(params));
+registerRoute('syntax', async (params) => await renderSyntax(params));
+registerRoute('concepts', async (params) => await renderConcepts(params));
+registerRoute('cookbook', async (params) => await renderCookbook(params));
 registerRoute('tech', (params) => renderTech(params));
 registerRoute('guide', (params) => renderGuide(params));
 registerRoute('roadmap', (params) => renderRoadmap(params));
 registerRoute('journal', (params) => renderJournal(params));
+registerRoute('news', async (params) => await renderNews(params));
+registerRoute('playground', (params) => renderPlayground(params));
 
 import { store } from './store.js';
 

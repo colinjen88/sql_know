@@ -31,6 +31,8 @@ const ICON_SVG = {
   'database': '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>',
   'cpu': '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M15 2v2"/><path d="M9 2v2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 20v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/>',
   'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+  'rss': '<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/>',
+  'flask-conical': '<path d="M10 2v8"/><path d="M14 2v8"/><path d="M8.5 2h7"/><path d="M7 22h10"/><path d="M9 14.5c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1z"/><path d="M15 17.5c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1z"/><path d="M7 10h10l3.5 10.5c.3.9-.3 1.5-1.2 1.5H4.7c-.9 0-1.5-.6-1.2-1.5L7 10z"/>',
 };
 
 function makeSvg(iconId, cls = '') {
@@ -44,6 +46,9 @@ export function renderSidebar() {
   const progress = getOverallProgress();
   const currentKB = store.getCurrentKB();
 
+  // Use the pre-defined navItems from store.js
+  const baseItems = currentKB.navItems;
+
   // Dynamic badges
   const counts = {
     syntax: getData('syntax').length,
@@ -51,17 +56,15 @@ export function renderSidebar() {
     cookbook: getData('cookbook').length,
   };
 
-  const navWithBadges = NAV_ITEMS.map(item => ({
+  const navWithBadges = baseItems.map(item => ({
     ...item,
-    label: currentKB.labels[item.id] || item.defaultLabel,
     badge: counts[item.id] ? counts[item.id].toString() : null
   }));
 
-  const sections = {
-    main: navWithBadges.filter(i => i.section === 'main'),
-    learn: navWithBadges.filter(i => i.section === 'learn'),
-    track: navWithBadges.filter(i => i.section === 'track'),
-  };
+  const groupedNav = currentKB.navGroups.map(group => ({
+    ...group,
+    items: navWithBadges.filter(i => i.section === group.id)
+  }));
 
   sidebar.innerHTML = `
     <div class="logo-area">
@@ -70,9 +73,7 @@ export function renderSidebar() {
     </div>
     
     <nav class="sidebar-nav">
-      ${renderSection('', sections.main, activePath)}
-      ${renderSection('學習資源', sections.learn, activePath)}
-      ${renderSection('進度追蹤', sections.track, activePath)}
+      ${groupedNav.map(group => renderSection(group.label, group.items, activePath)).join('')}
     </nav>
     
     <div class="sidebar-progress" style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border-color);">

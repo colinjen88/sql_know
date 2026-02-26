@@ -17,6 +17,21 @@ const KNOWLEDGE_BASES = {
       roadmap: '學習路徑',
       journal: '學習日誌'
     },
+    navGroups: [
+      { id: 'main', label: '' },
+      { id: 'learn', label: '學習資源' },
+      { id: 'track', label: '進度追蹤' }
+    ],
+    navItems: [
+      { id: 'dashboard', icon: 'home', label: '首頁總覽', section: 'main' },
+      { id: 'syntax', icon: 'book-open', label: '語法字典', section: 'learn' },
+      { id: 'concepts', icon: 'lightbulb', label: '核心觀念', section: 'learn' },
+      { id: 'cookbook', icon: 'chef-hat', label: '實戰食譜', section: 'learn' },
+      { id: 'tech', icon: 'wrench', label: '技術選型', section: 'learn' },
+      { id: 'guide', icon: 'ruler', label: '開發規範', section: 'learn' },
+      { id: 'roadmap', icon: 'map', label: '學習路徑', section: 'track' },
+      { id: 'journal', icon: 'notebook-pen', label: '學習日誌', section: 'track' },
+    ],
     descriptions: {
       syntax: '當你忘記指令怎麼寫時，來這裡快速查閱。',
       concepts: '理解「為什麼」要這樣做，面試與設計資料庫時使用。',
@@ -31,12 +46,36 @@ const KNOWLEDGE_BASES = {
     secondaryColor: '#a78bfa',
     description: 'Artificial Intelligence and LLM knowledge base',
     labels: {
-      syntax: '提示詞框架',
+      syntax: '提示詞字典',
       concepts: '模型機理',
       cookbook: '實戰工作流',
       roadmap: '技術雷達',
-      journal: '開發日誌'
+      journal: '開發日誌',
+      news: 'AI 動態',
+      playground: '提示詞實驗室'
     },
+    navGroups: [
+      { id: 'main', label: '' },
+      { id: 'learn', label: '核心知識' },
+      { id: 'tools', label: '實踐工具' },
+      { id: 'news', label: '情報獲取' },
+      { id: 'track', label: '進度追蹤' }
+    ],
+    navItems: [
+      { id: 'dashboard', icon: 'home', label: '首頁總覽', section: 'main' },
+      { id: 'concepts', icon: 'lightbulb', label: '模型機理', section: 'learn' },
+      { id: 'syntax', icon: 'book-open', label: '提示詞框架', section: 'learn' },
+      { id: 'cookbook', icon: 'chef-hat', label: '實戰工作流', section: 'tools' },
+      { id: 'playground', icon: 'flask-conical', label: '提示詞實驗室', section: 'tools' },
+      { id: 'news', icon: 'rss', label: 'AI 動態', section: 'news' },
+      { id: 'roadmap', icon: 'map', label: '技術雷達', section: 'track' },
+      { id: 'journal', icon: 'notebook-pen', label: '開發日誌', section: 'track' },
+    ],
+    rssFeeds: [
+      { name: 'OpenAI Blog', url: 'https://openai.com/news/rss/' },
+      { name: 'AI News', url: 'https://www.artificialintelligence-news.com/feed/' },
+      { name: 'MIT AI News', url: 'https://news.mit.edu/topic/artificial-intelligence-rss.xml' }
+    ],
     descriptions: {
       syntax: '精確控制 LLM 輸出的提示詞模式與結構。',
       concepts: '理解 Transformer、Tokens 與 Embedding 的運作原理。',

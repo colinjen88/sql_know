@@ -94,9 +94,20 @@ async function renderConceptDetail(id) {
   // Show loading state
   main.innerHTML = `<div class="loading">Loading content...</div>`;
 
+  // Try to load markdown, but fallback to JS data if needed
   const currentKB = store.getCurrentKB().id;
   const mdPath = `/data/${currentKB}/concepts/${item.id}.md`;
-  const htmlContent = await loadMarkdown(mdPath);
+  let htmlContent = '';
+  
+  try {
+    htmlContent = await loadMarkdown(mdPath);
+    // If it's an error message from loadMarkdown, treat it as "not found"
+    if (htmlContent.includes('error-msg')) {
+        htmlContent = null;
+    }
+  } catch (e) {
+    htmlContent = null;
+  }
 
   main.innerHTML = `
     <div class="detail-view">
@@ -109,9 +120,46 @@ async function renderConceptDetail(id) {
         <h2 class="detail-title">${item.name}</h2>
       </div>
 
-      <div class="markdown-content">
-        ${htmlContent}
-      </div>
+      ${htmlContent ? `
+        <div class="markdown-content">
+          ${htmlContent}
+        </div>
+      ` : `
+        <div class="detail-section">
+          <h3 class="detail-section-title">💡 一句話解釋 (ELI5)</h3>
+          <div class="callout">${item.eli5}</div>
+        </div>
+
+        <div class="detail-section">
+          <h3 class="detail-section-title">🎯 生活化比喻</h3>
+          <div class="detail-section-content">
+            <p>${item.analogy}</p>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3 class="detail-section-title">⚠️ 為什麼重要？</h3>
+          <div class="detail-section-content">
+            <ul>
+              ${item.whyMatters.map(w => `<li>${w}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+
+        ${item.visual ? `
+          <div class="detail-section">
+            <h3 class="detail-section-title">📊 視覺化</h3>
+            ${renderCodeBlock(item.visual, 'text')}
+          </div>
+        ` : ''}
+
+        ${item.codeExample ? `
+          <div class="detail-section">
+            <h3 class="detail-section-title">💻 範例程式碼</h3>
+            ${renderCodeBlock(item.codeExample)}
+          </div>
+        ` : ''}
+      `}
 
        ${item.advanced ? renderExpandableSection(
     `⚡ 進階：${item.advanced.title}`,
